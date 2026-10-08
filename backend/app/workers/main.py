@@ -12,6 +12,8 @@ from app.config import settings
 from app.infrastructure.db import SessionLocal
 from app.ingestion.extracao import ExtratorZip
 from app.ingestion.ingestao import IngestaoDeLote
+from app.processing.processamento import ProcessamentoDeArquivo
+from app.processors.registry import PROCESSADORES, criar_processador
 from app.workers.consumidor import Consumidor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -27,10 +29,17 @@ def criar_ingestao():
     )
 
 
-# fila -> função que monta o handler. Os workers por tipo entram aqui no passo 5.
-HANDLERS = {
-    "lotes": criar_ingestao,
-}
+def criar_processamento(tipo: str):
+    return lambda: ProcessamentoDeArquivo(
+        processador=criar_processador(tipo),
+        session_factory=SessionLocal,
+        storage_raiz=settings.storage_path,
+    )
+
+
+# fila -> função que monta o handler
+HANDLERS = {"lotes": criar_ingestao}
+HANDLERS.update({tipo: criar_processamento(tipo) for tipo in PROCESSADORES})
 
 
 def main() -> None:

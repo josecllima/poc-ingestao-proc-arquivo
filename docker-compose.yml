@@ -61,6 +61,31 @@ services:
     command: python -m app.workers.main --fila lotes
     restart: unless-stopped
 
+  worker-csv:
+    <<: *app
+    command: python -m app.workers.main --fila csv
+    restart: unless-stopped
+
+  worker-json:
+    <<: *app
+    command: python -m app.workers.main --fila json
+    restart: unless-stopped
+
+  worker-xml:
+    <<: *app
+    command: python -m app.workers.main --fila xml
+    restart: unless-stopped
+
+  worker-txt:
+    <<: *app
+    command: python -m app.workers.main --fila txt
+    restart: unless-stopped
+
+  worker-storage:
+    <<: *app
+    command: python -m app.workers.main --fila storage
+    restart: unless-stopped
+
 volumes:
   sqldata: {}
   rabbitdata: {}

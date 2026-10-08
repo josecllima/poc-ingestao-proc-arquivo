@@ -7,7 +7,7 @@ from sqlalchemy import select, text, update
 from sqlalchemy.orm import Session
 
 from app.domain.status import StatusArquivo, StatusLote
-from app.infrastructure.models import ArquivoModel, LoteModel
+from app.infrastructure.models import ArquivoModel, LoteModel, agora_utc
 
 
 class LoteRepository:
@@ -87,3 +87,26 @@ class ArquivoRepository:
             update(ArquivoModel)
             .where(ArquivoModel.id == arquivo_id, ArquivoModel.status == StatusArquivo.PENDENTE)
             .values(status=StatusArquivo.PUBLICADO))
+
+    def obter(self, arquivo_id: int) -> ArquivoModel | None:
+        return self.session.get(ArquivoModel, arquivo_id)
+
+    def iniciar(self, arquivo_id: int, tentativa: int) -> bool:
+        """Marca PROCESSANDO. Retorna False se o arquivo já tem status final."""
+        resultado = self.session.execute(
+            update(ArquivoModel)
+            .where(ArquivoModel.id == arquivo_id,
+                   ArquivoModel.status.in_([StatusArquivo.PENDENTE, StatusArquivo.PUBLICADO,
+                                            StatusArquivo.PROCESSANDO]))
+            .values(status=StatusArquivo.PROCESSANDO, tentativas=tentativa, iniciado_em=agora_utc()))
+        return resultado.rowcount == 1
+
+    def concluir(self, arquivo_id: int, status: StatusArquivo, resultado_json: str) -> None:
+        self.session.execute(
+            update(ArquivoModel).where(ArquivoModel.id == arquivo_id)
+            .values(status=status, resultado=resultado_json, erro=None, finalizado_em=agora_utc()))
+
+    def marcar_erro(self, arquivo_id: int, erro: str) -> None:
+        self.session.execute(
+            update(ArquivoModel).where(ArquivoModel.id == arquivo_id)
+            .values(status=StatusArquivo.ERRO, erro=erro[:1000], finalizado_em=agora_utc()))
