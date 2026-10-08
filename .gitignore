@@ -8,3 +8,6 @@ node_modules/
 dist/
 storage/
 .vscode/
+# arquivos de teste manuais
+teste.zip
+teste.csv

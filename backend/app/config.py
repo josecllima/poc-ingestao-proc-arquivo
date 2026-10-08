@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     storage_path: str = "/storage"
     max_zip_mb: int = 100
     max_arquivos_por_lote: int = 500
+    max_descompactado_mb: int = 500
     max_tentativas: int = 3
 
     @property

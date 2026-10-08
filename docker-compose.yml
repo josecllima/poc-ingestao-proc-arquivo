@@ -1,3 +1,16 @@
+# Configuração comum da API e dos workers: mesma imagem, mesmas variáveis
+x-app: &app
+  build: ./backend
+  image: certacon-app
+  env_file: .env
+  environment:
+    DB_HOST: sqlserver
+    RABBIT_HOST: rabbitmq
+  volumes: [storage:/storage]
+  depends_on:
+    db-init: { condition: service_completed_successfully }
+    rabbitmq: { condition: service_healthy }
+
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -35,21 +48,18 @@ services:
       retries: 12
 
   backend:
-    build: ./backend
-    env_file: .env
-    environment:
-      DB_HOST: sqlserver
-      RABBIT_HOST: rabbitmq
+    <<: *app
     ports: ["8000:8000"]
-    volumes: [storage:/storage]
-    depends_on:
-      db-init: { condition: service_completed_successfully }
-      rabbitmq: { condition: service_healthy }
     healthcheck:
       test: curl -fs http://localhost:8000/health || exit 1
       interval: 15s
       retries: 5
       start_period: 15s
+
+  worker-ingestao:
+    <<: *app
+    command: python -m app.workers.main --fila lotes
+    restart: unless-stopped
 
 volumes:
   sqldata: {}
