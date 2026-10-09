@@ -1,0 +1,38 @@
+# Integração contínua: roda a cada push e pull request.
+#   1. compila as imagens (backend + frontend; o build do frontend faz a checagem de tipos do TypeScript)
+#   2. sobe o ambiente completo com o docker compose (SQL Server, RabbitMQ, API, workers, frontend)
+#   3. teste de ponta a ponta: envia os ZIPs de exemplos/ e confere o status final de cada lote
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:   # permite rodar manualmente pela aba Actions
+
+jobs:
+  build-e-teste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Criar o .env a partir do exemplo
+        run: cp .env.example .env
+
+      - name: Compilar as imagens
+        run: docker compose build
+
+      - name: Subir o ambiente
+        run: docker compose up -d
+
+      - name: Teste de ponta a ponta
+        run: bash .github/scripts/teste_ponta_a_ponta.sh
+
+      - name: Logs dos containers (se algo falhou)
+        if: failure()
+        run: docker compose ps -a && docker compose logs --tail 80
+
+      - name: Derrubar o ambiente
+        if: always()
+        run: docker compose down -v

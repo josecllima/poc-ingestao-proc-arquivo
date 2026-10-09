@@ -1,0 +1,4 @@
+# scripts shell sempre com quebra de linha Unix (rodam no Linux do CI)
+*.sh text eol=lf
+# .bat sempre com quebra de linha Windows
+*.bat text eol=crlf

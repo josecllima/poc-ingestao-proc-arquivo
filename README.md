@@ -1,5 +1,7 @@
 # POC — Sistema de Ingestão e Processamento Assíncrono de Arquivos
 
+[![CI](https://github.com/josecllima/poc-ingestao-proc-arquivo/actions/workflows/ci.yml/badge.svg)](https://github.com/josecllima/poc-ingestao-proc-arquivo/actions/workflows/ci.yml)
+
 Recebe lotes compactados (ZIP), extrai os arquivos com segurança, classifica cada um **pelo conteúdo**, distribui em **filas independentes do RabbitMQ**, processa de forma **assíncrona** em workers especializados, grava os resultados no **SQL Server** e apresenta o acompanhamento em um **frontend React**.
 
 > Todos os dados, layouts e classificações são fictícios.
@@ -252,7 +254,7 @@ O resultado esperado de cada arquivo está em [`exemplos/README.md`](exemplos/RE
 
 - **Confiabilidade:** retry com atraso, DLQ, backoff na reconexão, idempotência (hash do ZIP + status), retomada de lote interrompido, reenfileiramento após queda da fila.
 - **Arquitetura:** camadas (api / domain / ingestion / processing / infrastructure), Strategy (classificadores e processadores), Factory (registro de processadores e de workers), injeção de dependência.
-- **Operação:** health checks (SQL Server, RabbitMQ e API — esta checa banco e fila), logs com correlação (`loteId`, `arquivoId`, `fila`, `worker`), política de retenção do storage.
+- **Operação:** CI (GitHub Actions) que a cada push compila as imagens, sobe o ambiente completo e roda um teste de ponta a ponta com os ZIPs de `exemplos/` ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)); health checks (SQL Server, RabbitMQ e API — esta checa banco e fila), logs com correlação (`loteId`, `arquivoId`, `fila`, `worker`), política de retenção do storage.
 - **Experiência:** Painel com situação dos serviços, paginação e filtro por status, progresso do upload, atualização automática, download do ZIP original e de cada arquivo extraído.
 - **Segurança:** path traversal, ZIP bomb (limite conferido nos bytes realmente escritos), ZIP com senha, ZIP corrompido, nomes duplicados, arquivos vazios; downloads só de dentro do `/storage`.
 
@@ -260,7 +262,7 @@ O resultado esperado de cada arquivo está em [`exemplos/README.md`](exemplos/RE
 
 | Limitação | Em produção |
 |---|---|
-| Sem testes automatizados, lint ou CI | pytest (unitários dos classificadores/processadores com arquivos de exemplo; integração com Testcontainers), ruff, GitHub Actions |
+| Sem testes unitários nem lint (o CI cobre só o teste de ponta a ponta) | pytest (unitários dos classificadores/processadores), ruff |
 | ZIP aninhado (bônus) não implementado: um `.zip` dentro do lote fica `IGNORADO` | Extração recursiva com limite de profundidade e origem registrada |
 | Logs em texto | Logs estruturados (JSON) enviados para ELK/Loki; métricas (Prometheus) e tracing |
 | Publicação da API abre uma conexão por mensagem | Pool de conexões/canais |
