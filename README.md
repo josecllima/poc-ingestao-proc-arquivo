@@ -7,13 +7,13 @@ Recebe lotes compactados (ZIP), extrai os arquivos com segurança, classifica ca
 **Sumário:** [Arquitetura](#arquitetura) · [Fluxo](#fluxo-de-um-lote) · [Tecnologias](#tecnologias) · [Estrutura](#estrutura-do-projeto) · [Como executar](#como-executar) · [Variáveis de ambiente](#variáveis-de-ambiente) · [Endpoints](#endpoints-da-api) · [Filas](#filas-do-rabbitmq) · [Modelo de dados](#modelo-de-dados) · [Arquivos de teste](#arquivos-de-teste) · [Decisões técnicas](#decisões-técnicas) · [Diferenciais](#diferenciais-implementados) · [Limitações](#limitações-conhecidas-e-melhorias-para-produção)
 
 Detalhes de arquitetura, estados, mensageria, escalabilidade e como estender: **[docs/arquitetura.md](docs/arquitetura.md)**.
-Os diagramas estão em [`docs/diagramas/`](docs/diagramas) no formato `.drawio.svg`: aparecem como imagem no GitHub e podem ser editados no [draw.io](https://app.diagrams.net) ou no VS Code (extensão *Draw.io Integration*).
+Os diagramas estão em [`docs/`](docs) no formato `.drawio.svg`: aparecem como imagem no GitHub e podem ser editados no [draw.io](https://app.diagrams.net) ou no VS Code (extensão *Draw.io Integration*).
 
 ---
 
 ## Arquitetura
 
-![Arquitetura](docs/diagramas/arquitetura.drawio.svg)
+![Arquitetura](docs/arquitetura.drawio.svg)
 
 - **API (backend):** só valida, grava o ZIP, registra o lote e publica em `queue.lotes`. Responde **202 Accepted** sem esperar o processamento.
 - **worker-ingestao:** extrai o ZIP, identifica e classifica os arquivos, grava no banco e publica cada arquivo na fila do seu tipo.
@@ -22,7 +22,7 @@ Os diagramas estão em [`docs/diagramas/`](docs/diagramas) no formato `.drawio.s
 
 ## Fluxo de um lote
 
-![Fluxo de um lote](docs/diagramas/fluxo-lote.drawio.svg)
+![Fluxo de um lote](docs/fluxo-lote.drawio.svg)
 
 Mensagem publicada para cada arquivo (só o necessário para localizá-lo, nunca o conteúdo):
 
@@ -50,9 +50,12 @@ certacon/
 ├── .env.example              # modelo de variáveis (sem credenciais reais)
 ├── 1_recompilar.bat          # Windows: só compila as imagens
 ├── 2_inicio_docker_urls.bat  # Windows: abre o Docker, sobe tudo e abre o Painel
+├── 3_gerar_documentos.bat    # Windows: recria os ZIPs oficiais de teste
+├── 4_gerar_documentos_outros.bat  # Windows: gera lotes de teste inéditos (com data e hora)
+├── 5_sql.bat                 # Windows: console SQL (sqlcmd) no banco da POC
 ├── db/init.sql               # criação do banco, tabelas e índices
 ├── docs/arquitetura.md       # detalhes técnicos
-├── samples/                  # ZIPs fictícios de teste + gerador
+├── exemplos/                 # ZIPs fictícios de teste + gerador (o "samples/" do enunciado)
 ├── backend/
 │   ├── Dockerfile            # uma imagem para a API e todos os workers
 │   └── app/
@@ -86,12 +89,15 @@ docker compose up --build
 
 Na primeira vez o SQL Server leva 1–2 minutos para subir; o `db-init` cria o banco e os demais containers esperam por ele (health checks). Os comandos devem ser executados **na raiz do projeto** (onde está o `.env`).
 
-No Windows também há dois atalhos:
+No Windows também há atalhos:
 
 | Arquivo | Quando usar |
 |---|---|
 | `1_recompilar.bat` | Depois de mudar o código: **só compila** as imagens (`docker compose build`), sem subir containers. |
 | `2_inicio_docker_urls.bat` | Abre o Docker Desktop se estiver fechado, sobe os containers (recriando os que têm imagem nova), espera a API e abre o Painel. |
+| `3_gerar_documentos.bat` | Recria os ZIPs oficiais de teste em `exemplos/` (nomes fixos). |
+| `4_gerar_documentos_outros.bat` | Gera lotes inéditos em `exemplos/gerados/`, com sufixo `_ddmmaaaahhmmss` no ZIP e nos arquivos internos. |
+| `5_sql.bat` | Abre o `sqlcmd` dentro do container do SQL Server, já no banco da POC. |
 
 ### Endereços
 
@@ -151,7 +157,7 @@ Documentação interativa em **/docs** (Swagger).
 Exemplo:
 
 ```bash
-curl -F "arquivo=@samples/lote-valido.zip" http://localhost:8000/lotes
+curl -F "arquivo=@exemplos/lote-valido.zip" http://localhost:8000/lotes
 curl http://localhost:8000/lotes/1
 ```
 
@@ -177,7 +183,7 @@ Garantias: filas e mensagens **duráveis**, **confirmação de publicação** (p
 
 ## Modelo de dados
 
-![Modelo de dados](docs/diagramas/modelo-dados.drawio.svg)
+![Modelo de dados](docs/modelo-dados.drawio.svg)
 
 Script: [`db/init.sql`](db/init.sql) (idempotente; executado pelo container `db-init`).
 
@@ -215,7 +221,7 @@ Todos incluem `tipoDocumental`.
 
 ## Arquivos de teste
 
-Em [`samples/`](samples/README.md) — todos fictícios. Para gerar de novo: `python samples/gerar_samples.py`.
+Em [`exemplos/`](exemplos/README.md) (equivale à pasta `samples/` pedida no enunciado) — todos fictícios. Para gerar de novo: `python exemplos/gerar_exemplos.py`.
 
 | ZIP | Demonstra | Lote termina |
 |---|---|---|
@@ -225,7 +231,7 @@ Em [`samples/`](samples/README.md) — todos fictícios. Para gerar de novo: `py
 | `lote-corrompido.zip` | ZIP inválido | `ERRO` |
 | `lote-1mb.zip` | Volume (~1 MB por arquivo) | `CONCLUIDO` |
 
-O resultado esperado de cada arquivo está em [`samples/README.md`](samples/README.md).
+O resultado esperado de cada arquivo está em [`exemplos/README.md`](exemplos/README.md).
 
 ## Decisões técnicas
 

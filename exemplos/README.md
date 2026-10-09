@@ -1,6 +1,13 @@
 # Arquivos de teste
 
-Todos os dados são fictícios. Para gerar de novo: `python samples/gerar_samples.py` (na raiz do projeto).
+Pasta equivalente à `samples/` pedida no enunciado. Todos os dados são fictícios. Comandos (na raiz do projeto):
+
+| Comando | Atalho no Windows | Gera |
+|---|---|---|
+| `python exemplos/gerar_exemplos.py` | `3_gerar_documentos.bat` | Os ZIPs oficiais abaixo, em `exemplos/`, com nomes fixos |
+| `python exemplos/gerar_exemplos.py --carimbo` | `4_gerar_documentos_outros.bat` | Lotes **inéditos** em `exemplos/gerados/`: o ZIP e cada arquivo interno ganham o sufixo `_ddmmaaaahhmmss` e os dados mudam a cada execução |
+
+Com `--carimbo` dá para enviar o mesmo cenário várias vezes sem cair na regra de duplicidade (hash do ZIP). Para testar a duplicidade, reenvie um ZIP já enviado — mesmo renomeado, ele é reconhecido como duplicado. A pasta `exemplos/gerados/` não vai para o Git.
 
 | ZIP | Para demonstrar | Status final do lote |
 |---|---|---|

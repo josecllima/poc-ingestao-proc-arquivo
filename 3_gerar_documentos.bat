@@ -1,7 +1,7 @@
 @echo off
 REM ==========================================================
-REM  3) SAMPLES CONVENCIONAIS: recria os ZIPs oficiais de teste
-REM     em samples\ com nomes fixos (lote-valido.zip, ...).
+REM  3) EXEMPLOS CONVENCIONAIS: recria os ZIPs oficiais de teste
+REM     em exemplos\ com nomes fixos (lote-valido.zip, ...).
 REM     Sao os arquivos de teste que vao para o repositorio.
 REM ==========================================================
 cd /d "%~dp0"
@@ -22,9 +22,9 @@ if not defined PY (
 
 echo Gerando os ZIPs de teste convencionais...
 echo.
-%PY% samples\gerar_samples.py || goto falhou
+%PY% exemplos\gerar_exemplos.py || goto falhou
 echo.
-start "" explorer "%~dp0samples"
+start "" explorer "%~dp0exemplos"
 pause
 exit /b 0
 

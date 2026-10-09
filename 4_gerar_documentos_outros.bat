@@ -1,7 +1,7 @@
 @echo off
 REM ==========================================================
-REM  4) SAMPLES COM CARIMBO: gera lotes INEDITOS em
-REM     samples\gerados\ - o ZIP e cada arquivo interno ganham
+REM  4) EXEMPLOS COM CARIMBO: gera lotes INEDITOS em
+REM     exemplos\gerados\ - o ZIP e cada arquivo interno ganham
 REM     o sufixo _ddmmaaaahhmmss e os dados mudam a cada vez.
 REM     Use para enviar o mesmo cenario varias vezes sem cair
 REM     na regra de duplicidade. (pasta fora do Git)
@@ -24,9 +24,9 @@ if not defined PY (
 
 echo Gerando lotes de teste com carimbo de data e hora...
 echo.
-%PY% samples\gerar_samples.py --carimbo || goto falhou
+%PY% exemplos\gerar_exemplos.py --carimbo || goto falhou
 echo.
-start "" explorer "%~dp0samples\gerados"
+start "" explorer "%~dp0exemplos\gerados"
 pause
 exit /b 0
 

@@ -1,8 +1,8 @@
 """Gera os ZIPs de teste com dados fictícios (só biblioteca padrão do Python).
 
 Uso, na raiz do projeto:
-    python samples/gerar_samples.py              # ZIPs oficiais em samples/ (nomes fixos)
-    python samples/gerar_samples.py --carimbo    # ZIPs NOVOS em samples/gerados/ para testar
+    python exemplos/gerar_exemplos.py              # ZIPs oficiais em exemplos/ (nomes fixos)
+    python exemplos/gerar_exemplos.py --carimbo    # ZIPs NOVOS em exemplos/gerados/ para testar
                                                  # vários cenários (ver abaixo)
 
 Com --carimbo, o ZIP e cada arquivo interno ganham o sufixo _ddmmaaaahhmmss
@@ -11,7 +11,7 @@ conteúdo é gerado com dados aleatórios diferentes. Assim cada execução prod
 lotes inéditos, que não caem na regra de duplicidade (hash do ZIP).
 Para testar a duplicidade, reenvie o mesmo ZIP (mesmo renomeado).
 
-Gera em samples/ (o resultado esperado de cada um está no README.md da pasta):
+Gera em exemplos/ (o resultado esperado de cada um está no README.md da pasta):
     lote-valido.zip                         um arquivo válido de cada tipo
     lote-com-erros.zip                      inválidos, vazio, duplicado, caminho malicioso
     lote-com-arquivos-nao-processaveis.zip  PDF, imagens e extensões desconhecidas
@@ -204,7 +204,7 @@ def main() -> None:
     global rnd
     parser = argparse.ArgumentParser(description="Gera os ZIPs de teste")
     parser.add_argument("--carimbo", action="store_true",
-                        help="nomes com _ddmmaaaahhmmss e dados aleatórios novos, em samples/gerados/")
+                        help="nomes com _ddmmaaaahhmmss e dados aleatórios novos, em exemplos/gerados/")
     args = parser.parse_args()
 
     carimbo, saida = "", PASTA
