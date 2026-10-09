@@ -35,6 +35,8 @@ class ProcessamentoDeArquivo:
                 log.info("Arquivo já finalizado, ignorando mensagem arquivoId=%s", arquivo_id)
                 return
             session.commit()
+        log.info("Início do processamento loteId=%s arquivoId=%s tentativa=%s",
+                 lote_id, arquivo_id, mensagem.get("tentativa", 1))
 
         caminho = self._caminho_confiavel(mensagem["caminho"])
         resultado = self.processador.processar(caminho)  # ErroPermanente -> falhou()
@@ -45,7 +47,7 @@ class ProcessamentoDeArquivo:
             ArquivoRepository(session).concluir(
                 arquivo_id, self.processador.status_sucesso, json.dumps(resultado, ensure_ascii=False))
             session.commit()
-        log.info("Arquivo processado loteId=%s arquivoId=%s status=%s",
+        log.info("Fim do processamento loteId=%s arquivoId=%s status=%s",
                  lote_id, arquivo_id, self.processador.status_sucesso)
         self._finalizar_lote(lote_id)
 

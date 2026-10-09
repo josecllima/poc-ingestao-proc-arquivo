@@ -1,15 +1,16 @@
 @echo off
 REM ==========================================================
-REM  2) ABRIR: inicia o Docker (se estiver fechado), sobe os
-REM     containers que estiverem parados (sem recompilar),
-REM     espera a API e o front-end e abre o painel com os links.
+REM  2) INICIAR: abre o Docker (se estiver fechado), sobe os
+REM     containers (recria so os que tiverem imagem nova do
+REM     1_recompilar.bat), espera a API e o front-end e abre
+REM     o painel com os links.
 REM ==========================================================
 cd /d "%~dp0"
 call :docker_pronto || goto falhou
 
 echo.
-echo Subindo os containers que estiverem parados...
-docker compose up -d || goto falhou
+echo Subindo os containers...
+docker compose up -d --remove-orphans || goto falhou
 echo.
 call :esperar_servicos
 echo.

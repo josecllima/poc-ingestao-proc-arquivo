@@ -55,15 +55,21 @@ class IngestaoDeLote:
             return
 
         self._mudar_status(lote_id, StatusLote.EXTRAINDO)
+        log.info("Início da extração loteId=%s zip=%s", lote_id, zip_path.name)
         destino = zip_path.parent / "extraidos"
         self.extrator.limpar(destino)  # descarta restos de uma tentativa interrompida
         extraidos = self.extrator.extrair(zip_path, destino)
-        log.info("Lote extraído loteId=%s arquivos=%s", lote_id, len(extraidos))
+        log.info("Fim da extração loteId=%s arquivos=%s", lote_id, len(extraidos))
 
         self._mudar_status(lote_id, StatusLote.CLASSIFICANDO)
         with self.session_factory() as session:
             repo = ArquivoRepository(session)
             registros = [repo.adicionar(self._registro(lote_id, item)) for item in extraidos]
+            session.flush()  # gera os ids para o log abaixo
+            for a in registros:
+                log.info("Arquivo identificado loteId=%s arquivoId=%s arquivo=%s extensao=%s status=%s fila=%s tipo=%s%s",
+                         lote_id, a.id, a.caminho_relativo, a.extensao, a.status, a.fila, a.tipo_documental,
+                         f" motivo={a.erro}" if a.erro else "")
             lote_repo = LoteRepository(session)
             lote_repo.definir_total(lote_id, len(registros))
             lote_repo.atualizar_status(lote_id, StatusLote.PROCESSANDO)

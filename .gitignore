@@ -11,3 +11,9 @@ storage/
 # arquivos de teste manuais
 teste.zip
 teste.csv
+
+# arquivos temporarios do Office
+~$*
+
+# lotes de teste gerados com --carimbo
+samples/gerados/

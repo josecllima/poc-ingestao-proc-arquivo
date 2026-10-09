@@ -7,9 +7,13 @@ Cada tipo tem três filas:
 
 Declarar é idempotente: rodar de novo não apaga nem duplica nada.
 """
+from app.domain.tipos import FILA_POR_EXTENSAO
+
 EXCHANGE = "ingestao"
 DLX = "ingestao.dlx"
-TIPOS = ("lotes", "csv", "json", "xml", "txt", "storage")
+# "lotes" (ingestão) + uma fila para cada destino mapeado em domain/tipos.py.
+# Novo tipo de arquivo = nova entrada em FILA_POR_EXTENSAO; a fila nasce sozinha.
+TIPOS = ("lotes", *sorted(set(FILA_POR_EXTENSAO.values())))
 RETRY_TTL_MS = 5000
 
 

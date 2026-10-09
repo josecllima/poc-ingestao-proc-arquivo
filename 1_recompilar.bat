@@ -1,25 +1,21 @@
 @echo off
 REM ==========================================================
-REM  1) RECOMPILAR: reconstroi as imagens e recria TODOS os
-REM     containers (API, workers, front-end, banco, fila).
-REM     Use depois de mudar o codigo. Os dados (banco e filas)
-REM     ficam preservados nos volumes.
+REM  1) COMPILAR: so reconstroi as imagens (API, workers e
+REM     front-end). Nao sobe nem para nenhum container.
+REM     Use depois de mudar o codigo; em seguida rode o
+REM     2_inicio_docker_urls.bat para subir com as imagens novas.
 REM ==========================================================
 cd /d "%~dp0"
+
+REM O build precisa do motor do Docker: se estiver fechado, abre.
 call :docker_pronto || goto falhou
 
 echo.
-echo Parando os containers...
-docker compose down
+echo Compilando as imagens...
+docker compose build || goto falhou
 echo.
-echo Reconstruindo as imagens e recriando os containers...
-docker compose up -d --build --force-recreate || goto falhou
-echo.
-call :esperar_servicos
-echo.
-docker compose ps --format "table {{.Service}}\t{{.Status}}"
-echo.
-echo Recompilacao concluida. Para abrir as paginas: inicio_docker_urls.bat
+echo Compilacao concluida.
+echo Para subir os containers com as imagens novas e abrir o painel: 2_inicio_docker_urls.bat
 pause
 exit /b 0
 
@@ -75,38 +71,3 @@ if errorlevel 1 (
 )
 for /f "delims=" %%L in ('docker info 2^>^&1 ^| findstr /i "error"') do echo   [erro] %%L
 exit /b 0
-
-REM ----------------------------------------------------------
-REM  Sub-rotina: espera a API (ate 6 min) e o front-end (ate 3 min).
-REM ----------------------------------------------------------
-:esperar_servicos
-echo Aguardando a API em http://localhost:8000/health ...
-set /a es_tent=0
-:es_api
-curl -fs http://localhost:8000/health >nul 2>&1
-if not errorlevel 1 goto es_api_ok
-set /a es_tent+=1
-if %es_tent% geq 72 (
-    echo A API nao respondeu em 6 minutos. Veja: docker compose logs backend --tail 60
-    goto es_front
-)
-timeout /t 5 /nobreak >nul
-goto es_api
-:es_api_ok
-echo API pronta.
-:es_front
-echo Aguardando o front-end em http://localhost:3000 ...
-set /a es_tent=0
-:es_front_loop
-curl -fs http://localhost:3000 >nul 2>&1
-if not errorlevel 1 (
-    echo Front-end pronto.
-    exit /b 0
-)
-set /a es_tent+=1
-if %es_tent% geq 36 (
-    echo O front-end nao respondeu em 3 minutos. Veja: docker compose logs frontend --tail 60
-    exit /b 0
-)
-timeout /t 5 /nobreak >nul
-goto es_front_loop
