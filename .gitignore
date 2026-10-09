@@ -14,6 +14,3 @@ teste.csv
 
 # arquivos temporarios do Office
 ~$*
-
-# lotes de teste gerados com --carimbo
-exemplos/gerados/
