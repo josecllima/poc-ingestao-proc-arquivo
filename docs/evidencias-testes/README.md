@@ -1,92 +1,47 @@
 # Evidências de Testes
 
-Execução manual em ambiente local (Windows + Docker Desktop), entre **07 e 09/10/2026**, com os ZIPs de [`exemplos/`](../../exemplos/README.md).
-O mesmo fluxo é repetido automaticamente a cada push pelo [CI](../../.github/workflows/ci.yml) (teste de ponta a ponta).
+**Documento completo (prints + descrição de cada evidência): [`evidencias-de-testes.pdf`](evidencias-de-testes.pdf)**
 
-## Resumo
+Execução manual em ambiente local (Windows + Docker Desktop) com os ZIPs de [`exemplos/`](../../exemplos/README.md).
+Rodada final: **09/10/2026, 18:09** — lotes 2002 a 2006, gerados com `4_gerar_documentos_outros.bat`.
+O mesmo fluxo roda automaticamente a cada push no [CI](../../.github/workflows/ci.yml) (teste de ponta a ponta).
 
-| # | Evidência | O que comprova | Resultado |
-|---|---|---|---|
-| 01 | [Lista de lotes](#01--lista-de-lotes) | Status final de cada cenário de teste | ✅ |
-| 02 | [Upload](#02--upload) | Tela de envio do ZIP (processamento assíncrono) | ✅ |
-| 03 | [Dashboard](#03--dashboard) | Indicadores por extensão, tipo e status; tempos médios | ✅ |
-| 04 | [RabbitMQ – filas](#04--rabbitmq--filas) | 18 filas duráveis criadas pelo código (principal, retry e DLQ por tipo) | ✅ |
-| 05 | [RabbitMQ – visão geral](#05--rabbitmq--visão-geral) | 6 consumidores (um por worker), nenhuma mensagem perdida | ✅ |
-| 06 | [Swagger](#06--swagger) | Endpoints da API documentados | ✅ |
-| 07 | [Storage](#07--storage-volume-docker) | ZIP original e arquivos extraídos em `/storage/lotes/{loteId}/` | ✅ |
-| 08 | [Detalhe do lote](#08--detalhe-do-lote-lote-1mbzip) | Progresso, tipo, fila, status, tentativas, tempo e download por arquivo | ✅ |
-
----
-
-## 01 – Lista de lotes
-
-![Lista de lotes](01-lista-de-lotes.png)
-
-Cada ZIP de teste terminou no status esperado (ver [`exemplos/README.md`](../../exemplos/README.md)):
+## Resultado da rodada final
 
 | Lote | ZIP | Esperado | Obtido | Arquivos (sucesso / erros / ignorados) |
 |---|---|---|---|---|
-| 1 | `lote-1mb.zip` | CONCLUIDO | ✅ CONCLUIDO | 6 (6 / 0 / 0) |
-| 2 | `lote-valido.zip` | CONCLUIDO | ✅ CONCLUIDO | 7 (7 / 0 / 0) |
-| 3 | `lote-corrompido.zip` | ERRO | ✅ ERRO | 0 – ZIP inválido, nenhum arquivo extraído |
-| 4 | `lote-com-erros.zip` | CONCLUIDO_COM_ERROS | ✅ CONCLUIDO_COM_ERROS | 10 (5 / 4 / 1) – CSV, JSON e XML inválidos + `../` (ERRO); vazio (IGNORADO) |
-| 5 | `lote-com-arquivos-nao-processaveis.zip` | CONCLUIDO | ✅ CONCLUIDO | 6 (3 armazenados / 0 / 3) – `.xlsx`, `.exe` e sem extensão ignorados |
-| 6 | `lote-1mb - 2.zip` (variação do lote-1mb) | CONCLUIDO | ✅ CONCLUIDO | 6 (6 / 0 / 0) – bytes diferentes do lote 1, por isso não foi tratado como duplicado |
-| 1002, 1003 | lotes gerados com `--carimbo` | CONCLUIDO | ✅ CONCLUIDO | lotes inéditos (nomes com data e hora), não caem na regra de duplicidade |
+| 2002 | `lote-1mb_….zip` | CONCLUIDO | ✅ CONCLUIDO | 6 (6 / 0 / 0) |
+| 2003 | `lote-corrompido_….zip` | ERRO | ✅ ERRO | 0 – ZIP inválido |
+| 2004 | `lote-com-arquivos-nao-processaveis_….zip` | CONCLUIDO | ✅ CONCLUIDO | 6 (3 armazenados / 0 / 3) |
+| 2005 | `lote-com-erros_….zip` | CONCLUIDO_COM_ERROS | ✅ CONCLUIDO_COM_ERROS | 10 (5 / 4 / 1) |
+| 2006 | `lote-valido_….zip` | CONCLUIDO | ✅ CONCLUIDO | 7 (7 / 0 / 0) |
 
-Também visível: paginação e filtro por status.
+## Evidências
 
-## 02 – Upload
+| # | Evidência | O que comprova | Arquivo |
+|---|---|---|---|
+| 01 | Lista de lotes | Status final de cada cenário | [01-lista-de-lotes.png](01-lista-de-lotes.png) |
+| 02 | Upload | Envio do ZIP; API responde 202 e o processamento é assíncrono | [02-upload.png](02-upload.png) |
+| 03 | Detalhe do lote válido (#2006) | Classificação pelo conteúdo, fila, status, tentativas, tempo e download | [03-detalhe-lote-valido.png](03-detalhe-lote-valido.png) |
+| 04 | Detalhe do lote com erros (#2005) | Falha isolada por arquivo, motivo de cada erro, ignorado e nome duplicado | [04-detalhe-lote-com-erros.png](04-detalhe-lote-com-erros.png) |
+| 05 | Dashboard | Arquivos por extensão, tipo e status; tempos médios; lotes por situação | [05-dashboard.png](05-dashboard.png) |
+| 06 | RabbitMQ – filas | 18 filas duráveis (principal, retry e DLQ por tipo) | [06-rabbitmq-filas.png](06-rabbitmq-filas.png) |
+| 07 | RabbitMQ – visão geral | 6 consumidores (um por worker), nenhuma mensagem pendente | [07-rabbitmq-visao-geral.png](07-rabbitmq-visao-geral.png) |
+| 08 | Swagger | Endpoints da API | [08-swagger-endpoints.png](08-swagger-endpoints.png) |
+| 09 | Storage | ZIP original e extraídos em `/storage/lotes/{loteId}/` | [09-storage-volume-docker.png](09-storage-volume-docker.png) |
+| 10 | Logs de processamento | Logs mínimos da seção 10 com loteId, arquivoId, fila e worker | [2002](logs-lote-2002.txt) · [2003](logs-lote-2003.txt) · [2004](logs-lote-2004.txt) · [2005](logs-lote-2005.txt) · [2006](logs-lote-2006.txt) |
+| 11 | Persistência no SQL Server | Tabelas `lote` e `arquivo`: status, tipo, fila, tentativas, erro e resultado | [lotes](evidencia_%20lotes.xlsx) · [arquivos](evidencia_arquivos_lote.xlsx) |
 
-![Upload](02-upload.png)
+### Logs mínimos (seção 10) – exemplos do lote 2005
 
-Seleção do ZIP e envio. A API responde **202** na hora e o processamento segue em segundo plano.
+| Log | Linha registrada |
+|---|---|
+| Recebimento do lote | `Lote recebido loteId=2005 nome=lote-com-erros_….zip bytes=3076` |
+| Início e fim da extração | `Início da extração loteId=2005` · `Fim da extração loteId=2005 arquivos=10` |
+| Arquivo identificado e classificado | `Arquivo identificado loteId=2005 arquivoId=3014 arquivo=clientes_….csv extensao=csv status=PENDENTE fila=queue.csv tipo=DOCUMENTO_CLIENTE` |
+| Persistência e publicação na fila | `Lote publicado loteId=2005 fila=queue.lotes` · `Arquivo publicado loteId=2005 arquivoId=3014 fila=queue.csv` |
+| Início e fim do processamento | `Início do processamento loteId=2005 arquivoId=3014 tentativa=1` · `Fim do processamento … status=PROCESSADO` |
+| Erros | `Erro permanente, sem retry fila=queue.json … motivo=JSON inválido` · `Falha definitiva na ingestão loteId=2003 motivo=Arquivo ZIP corrompido ou inválido` |
+| Tentativas de reprocessamento | Não ocorreu nesta rodada (só com falha transitória — parar o `sqlserver` durante um envio gera `Falha transitória, agendando retry`) |
 
-## 03 – Dashboard
-
-![Dashboard](03-dashboard.png)
-
-- **Lotes:** 8 no total — 6 concluídos, 1 concluído com erros, 1 com erro, 0 em andamento (bate com a evidência 01).
-- **Arquivos por extensão, tipo documental e status:** 30 PROCESSADO, 10 ARMAZENADO, 4 ERRO, 4 IGNORADO.
-- **Tempos médios:** por arquivo e por fila (`queue.csv`, `queue.json`, `queue.storage`, `queue.txt`, `queue.xml`).
-  O tempo médio **por lote** inclui lotes enviados durante o desenvolvimento, quando os workers ficaram parados de propósito (ex.: lote 1, recebido às 19:44 e concluído às 22:49 — evidência 08), por isso é bem maior que o tempo por arquivo.
-- `NAO_CLASSIFICADO` = arquivos sem análise de conteúdo (PDF, imagens, ignorados), que não recebem tipo documental.
-
-## 04 – RabbitMQ – filas
-
-![RabbitMQ – filas](04-rabbitmq-filas.png)
-
-- **18 filas** = 6 tipos (`lotes`, `csv`, `json`, `xml`, `txt`, `storage`) × 3 (principal, `.retry`, `.dlq`), criadas pelo próprio código ao subir.
-- **D** = durável (sobrevive a reinício do RabbitMQ); **DLX/DLK** = mensagens rejeitadas vão para a DLQ; **TTL** nas `.retry` = espera de 5 s antes de nova tentativa.
-- Todas com 0 mensagens: tudo foi consumido e confirmado (ack).
-
-## 05 – RabbitMQ – visão geral
-
-![RabbitMQ – visão geral](05-rabbitmq-visao-geral.png)
-
-- **Consumers: 6** — um por worker (`worker-ingestao`, `worker-csv`, `worker-json`, `worker-xml`, `worker-txt`, `worker-storage`).
-- **Queues: 18**, **Exchanges** incluindo `ingestao` e `ingestao.dlx`.
-- Fila vazia (Ready 0 / Unacked 0): nenhuma mensagem pendente ou perdida.
-
-## 06 – Swagger
-
-![Swagger](06-swagger-endpoints.png)
-
-Endpoints: `GET /health`, `POST /lotes`, `GET /lotes`, `GET /lotes/{id}`, `GET /lotes/{id}/zip`, `GET /lotes/{id}/arquivos/{arquivoId}/download`, `GET /dashboard`.
-
-## 07 – Storage (volume Docker)
-
-![Storage](07-storage-volume-docker.png)
-
-Volume `certacon_storage`, compartilhado pela API e pelos workers:
-`/storage/lotes/1/lote-1mb.zip` (ZIP original, como foi enviado) e `/storage/lotes/1/extraidos/` (arquivos extraídos, mantendo as subpastas, ex.: `imagens/`).
-O banco guarda só o caminho de cada arquivo.
-
-## 08 – Detalhe do lote (`lote-1mb.zip`)
-
-![Detalhe do lote](08-detalhe-lote-1mb.png)
-
-- Progresso 100%, 6 arquivos de ~1 MB, todos com sucesso.
-- Classificação pelo conteúdo: `clientes.csv` e `clientes.xml` → DOCUMENTO_CLIENTE; `movimentos.xml` e `movimentos.txt` → DOCUMENTO_MOVIMENTO; `produtos.json` → DOCUMENTO_PRODUTO.
-- Cada arquivo na fila do seu tipo; a imagem foi para `queue.storage` e ficou **ARMAZENADO**.
-- Tentativas, tempo de processamento e links de download (arquivo extraído e ZIP original).
+> A captura do dashboard (05) e a exportação do banco (11) são de antes da rodada final (lotes 1 a 1003); o lote 4 da exportação é o mesmo cenário do lote 2005.

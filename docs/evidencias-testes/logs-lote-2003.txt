@@ -1,0 +1,5 @@
+backend-1         | 2026-10-09T21:09:16.435642259Z 2026-10-09 21:09:16,426 INFO app.ingestion.recebimento Lote recebido loteId=2003 nome=lote-corrompido_09102026180828.zip bytes=410
+backend-1         | 2026-10-09T21:09:16.519077220Z 2026-10-09 21:09:16,506 INFO app.ingestion.recebimento Lote publicado loteId=2003 fila=queue.lotes
+worker-ingestao-1  | 2026-10-09T21:09:16.552384538Z 2026-10-09 21:09:16,551 INFO worker=worker-lotes@39f16b48f734 app.ingestion.ingestao Início da extração loteId=2003 zip=lote-corrompido_09102026180828.zip
+worker-ingestao-1  | 2026-10-09T21:09:16.555233649Z 2026-10-09 21:09:16,554 WARNING worker=worker-lotes@39f16b48f734 app.workers.consumidor Erro permanente, sem retry fila=queue.lotes loteId=2003 arquivoId=None tentativa=1 motivo=Arquivo ZIP corrompido ou inválido
+worker-ingestao-1  | 2026-10-09T21:09:16.557206142Z 2026-10-09 21:09:16,555 ERROR worker=worker-lotes@39f16b48f734 app.ingestion.ingestao Falha definitiva na ingestão loteId=2003 motivo=Arquivo ZIP corrompido ou inválido
