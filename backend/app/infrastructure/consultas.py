@@ -63,9 +63,13 @@ def resumo_do_lote(session: Session, lote_id: int):
 
 def dashboard(session: Session) -> dict:
     def agrupar(coluna: str, vazio: str) -> list[dict]:
+        # O parâmetro fica só na subconsulta: no SQL Server, cada :vazio vira um parâmetro
+        # diferente, e "GROUP BY COALESCE(col, @P2)" não casa com "SELECT COALESCE(col, @P1)".
         linhas = session.execute(text(f"""
-            SELECT COALESCE({coluna}, :vazio) AS chave, COUNT(*) AS qtd
-              FROM arquivo GROUP BY COALESCE({coluna}, :vazio) ORDER BY qtd DESC
+            SELECT t.chave, COUNT(*) AS qtd
+              FROM (SELECT COALESCE({coluna}, :vazio) AS chave FROM arquivo) AS t
+             GROUP BY t.chave
+             ORDER BY qtd DESC
         """), {"vazio": vazio}).all()
         return [{"chave": r.chave, "quantidade": r.qtd} for r in linhas]
 

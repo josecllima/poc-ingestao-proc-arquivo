@@ -43,6 +43,8 @@ export interface Arquivo {
   tentativas: number;
   tempoMs: number | null;
   erro: string | null;
+  /** false quando o arquivo não chegou a ser gravado no storage (ex.: falha na extração) */
+  disponivel: boolean;
   resultado: Record<string, unknown> | null;
 }
 
@@ -80,6 +82,11 @@ export interface RespostaUpload {
   duplicado: boolean;
 }
 
+export interface Saude {
+  status: "ok" | "degradado";
+  checks: Record<string, string>; // ex.: { sqlserver: "ok", rabbitmq: "erro: ..." }
+}
+
 export const STATUS_FINAIS_LOTE: StatusLote[] = ["CONCLUIDO", "CONCLUIDO_COM_ERROS", "ERRO"];
 
 async function getJson<T>(caminho: string): Promise<T> {
@@ -107,6 +114,17 @@ export const api = {
     ),
   obterLote: (id: number) => getJson<LoteDetalhe>(`/lotes/${id}`),
   dashboard: () => getJson<Dashboard>("/dashboard"),
+
+  /** /health devolve 503 quando o banco ou a fila estão fora, mas o corpo continua útil. */
+  async saude(): Promise<Saude> {
+    const r = await fetch(`${API_URL}/health`, { cache: "no-store" });
+    return (await r.json()) as Saude;
+  },
+
+  /** Links de download: a própria API devolve o arquivo com Content-Disposition: attachment. */
+  urlZip: (loteId: number) => `${API_URL}/lotes/${loteId}/zip`,
+  urlArquivo: (loteId: number, arquivoId: number) =>
+    `${API_URL}/lotes/${loteId}/arquivos/${arquivoId}/download`,
 
   /** Upload com progresso: usa XMLHttpRequest porque o fetch não informa o andamento do envio. */
   enviarLote(arquivo: File, aoProgredir: (pct: number) => void): Promise<RespostaUpload> {

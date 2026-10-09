@@ -43,5 +43,22 @@ class LocalStorage:
         shutil.move(temporario, destino)
         return destino
 
+    def caminho_do_zip(self, lote_id: int, nome_zip: str) -> Path | None:
+        """Caminho do ZIP original do lote (ou None se não estiver no storage)."""
+        return self.para_download(self.raiz / "lotes" / str(lote_id) / nome_zip)
+
+    def para_download(self, caminho: str | Path | None) -> Path | None:
+        """Devolve o caminho só se ele existir e estiver DENTRO do storage.
+
+        Proteção contra path traversal: mesmo que alguém consiga gravar um
+        caminho estranho no banco, a API nunca entrega arquivos de fora do /storage.
+        """
+        if not caminho:
+            return None
+        real = Path(caminho).resolve()
+        if not real.is_relative_to(self.raiz.resolve()) or not real.is_file():
+            return None
+        return real
+
     def descartar(self, caminho: Path) -> None:
         caminho.unlink(missing_ok=True)

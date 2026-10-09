@@ -21,6 +21,7 @@ export function LoteDetalhe({ id, voltar }: { id: number; voltar: () => void }) 
           <div className="cabecalho">
             <h2>Lote #{lote.loteId} – {lote.nomeZip}</h2>
             <StatusBadge status={lote.status} />
+            <a className="botao-download" href={api.urlZip(lote.loteId)} download>⬇ Baixar ZIP original</a>
           </div>
           {lote.erro && <p className="msg msg-erro">{lote.erro}</p>}
 
@@ -45,7 +46,7 @@ export function LoteDetalhe({ id, voltar }: { id: number; voltar: () => void }) 
             <thead>
               <tr>
                 <th>Arquivo</th><th>Extensão</th><th>Tamanho</th><th>Tipo documental</th>
-                <th>Fila</th><th>Status</th><th>Tentativas</th><th>Tempo</th><th>Erro</th>
+                <th>Fila</th><th>Status</th><th>Tentativas</th><th>Tempo</th><th>Erro</th><th>Download</th>
               </tr>
             </thead>
             <tbody>
@@ -61,16 +62,24 @@ export function LoteDetalhe({ id, voltar }: { id: number; voltar: () => void }) 
                     <td>{a.tentativas}</td>
                     <td>{tempo(a.tempoMs)}</td>
                     <td className="num-erro">{a.erro ?? ""}</td>
+                    <td>
+                      {a.disponivel ? (
+                        <a href={api.urlArquivo(lote.loteId, a.arquivoId)} download={a.nome}
+                           title={`Baixar ${a.nome}`} onClick={(e) => e.stopPropagation()}>
+                          ⬇ Baixar
+                        </a>
+                      ) : "–"}
+                    </td>
                   </tr>
                   {aberto === a.arquivoId && a.resultado && (
                     <tr className="resultado">
-                      <td colSpan={9}><pre>{JSON.stringify(a.resultado, null, 2)}</pre></td>
+                      <td colSpan={10}><pre>{JSON.stringify(a.resultado, null, 2)}</pre></td>
                     </tr>
                   )}
                 </Fragment>
               ))}
               {lote.arquivos.length === 0 && (
-                <tr><td colSpan={9} className="vazio">Ainda não há arquivos (o ZIP está sendo extraído).</td></tr>
+                <tr><td colSpan={10} className="vazio">Ainda não há arquivos (o ZIP está sendo extraído).</td></tr>
               )}
             </tbody>
           </table>

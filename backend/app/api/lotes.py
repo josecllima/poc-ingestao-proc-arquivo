@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.config import settings
@@ -10,7 +11,7 @@ from app.domain.status import StatusLote
 from app.infrastructure import consultas
 from app.infrastructure.db import SessionLocal
 from app.infrastructure.messaging import RabbitPublisher
-from app.infrastructure.repositories import ArquivoRepository
+from app.infrastructure.repositories import ArquivoRepository, LoteRepository
 from app.infrastructure.storage import LocalStorage
 from app.ingestion.recebimento import RecebimentoDeLote
 
@@ -84,6 +85,35 @@ def obter_lote(lote_id: int):
     }
 
 
+@router.get("/{lote_id}/zip", summary="Baixa o ZIP original do lote, exatamente como foi enviado",
+            response_class=FileResponse)
+def baixar_zip(lote_id: int):
+    with SessionLocal() as session:
+        lote = LoteRepository(session).obter(lote_id)
+        if lote is None:
+            raise HTTPException(status_code=404, detail="Lote não encontrado")
+        nome_zip = lote.nome_zip
+    caminho = LocalStorage(settings.storage_path).caminho_do_zip(lote_id, nome_zip)
+    if caminho is None:
+        raise HTTPException(status_code=404, detail="ZIP não encontrado no storage")
+    return FileResponse(caminho, media_type="application/zip", filename=nome_zip)
+
+
+@router.get("/{lote_id}/arquivos/{arquivo_id}/download",
+            summary="Baixa um arquivo extraído do ZIP, sem nenhuma alteração",
+            response_class=FileResponse)
+def baixar_arquivo(lote_id: int, arquivo_id: int):
+    with SessionLocal() as session:
+        arquivo = ArquivoRepository(session).obter(arquivo_id)
+        if arquivo is None or arquivo.lote_id != lote_id:
+            raise HTTPException(status_code=404, detail="Arquivo não encontrado neste lote")
+        nome, caminho_storage = arquivo.nome, arquivo.caminho_storage
+    caminho = LocalStorage(settings.storage_path).para_download(caminho_storage)
+    if caminho is None:
+        raise HTTPException(status_code=404, detail="Arquivo não disponível no storage")
+    return FileResponse(caminho, media_type="application/octet-stream", filename=nome)
+
+
 def _arquivo(a) -> dict:
     tempo_ms = None
     if a.iniciado_em and a.finalizado_em:
@@ -100,5 +130,6 @@ def _arquivo(a) -> dict:
         "tentativas": a.tentativas,
         "tempoMs": tempo_ms,
         "erro": a.erro,
+        "disponivel": bool(a.caminho_storage),
         "resultado": json.loads(a.resultado) if a.resultado else None,
     }

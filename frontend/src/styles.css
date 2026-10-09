@@ -91,3 +91,42 @@ tr.resultado pre { margin: 0; background: #f7f9fb; padding: 10px; border-radius:
 .barra-h-num { text-align: right; font-weight: 600; }
 
 .paginacao { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; }
+
+/* Links de download (ZIP original e arquivos extraídos) */
+a.botao-download {
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--primaria);
+  border-radius: 6px;
+  color: var(--primaria);
+  text-decoration: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+a.botao-download:hover { background: var(--primaria); color: #fff; }
+
+/* Painel: tela de entrada com a situação dos serviços e os links para as demais telas */
+.painel-titulo { font-size: 1.5rem; margin: 0 0 4px; }
+.servicos { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 16px 0 8px; }
+.servico {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 0.9rem;
+  background: var(--cartao); border: 1px solid var(--borda); border-radius: 999px;
+}
+.servico small { color: var(--suave); }
+.ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--alerta); }
+.ponto-ok { background: var(--ok); }
+.ponto-fora { background: var(--erro); }
+.servicos .ajuda { margin-left: auto; }
+.grupo-titulo {
+  font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--suave); margin: 24px 0 10px;
+}
+.links { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+a.link-card {
+  display: block; padding: 14px 16px; background: var(--cartao); color: inherit; text-decoration: none;
+  border: 1px solid var(--borda); border-radius: 10px; transition: border-color 0.15s, transform 0.15s;
+}
+a.link-card:hover { border-color: var(--primaria); transform: translateY(-1px); }
+a.link-card strong { display: block; color: var(--primaria); }
+a.link-card span { display: block; color: var(--suave); font-size: 0.9rem; }
+a.link-card code { font-size: 0.8rem; color: var(--suave); }
