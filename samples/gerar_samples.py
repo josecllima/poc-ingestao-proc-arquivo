@@ -1,7 +1,15 @@
 """Gera os ZIPs de teste com dados fictícios (só biblioteca padrão do Python).
 
 Uso, na raiz do projeto:
-    python samples/gerar_samples.py
+    python samples/gerar_samples.py              # ZIPs oficiais em samples/ (nomes fixos)
+    python samples/gerar_samples.py --carimbo    # ZIPs NOVOS em samples/gerados/ para testar
+                                                 # vários cenários (ver abaixo)
+
+Com --carimbo, o ZIP e cada arquivo interno ganham o sufixo _ddmmaaaahhmmss
+(ex.: lote-valido_09102026134500.zip contendo clientes_09102026134500.csv) e o
+conteúdo é gerado com dados aleatórios diferentes. Assim cada execução produz
+lotes inéditos, que não caem na regra de duplicidade (hash do ZIP).
+Para testar a duplicidade, reenvie o mesmo ZIP (mesmo renomeado).
 
 Gera em samples/ (o resultado esperado de cada um está no README.md da pasta):
     lote-valido.zip                         um arquivo válido de cada tipo
@@ -10,13 +18,15 @@ Gera em samples/ (o resultado esperado de cada um está no README.md da pasta):
     lote-corrompido.zip                     não é um ZIP de verdade (lote inteiro em ERRO)
     lote-1mb.zip                            ~1 MB por arquivo, para teste de volume
 """
+import argparse
 import base64
 import json
 import random
 import struct
 import zlib
 import zipfile
-from pathlib import Path
+from datetime import datetime
+from pathlib import Path, PurePosixPath
 
 ALVO = 1024 * 1024  # 1 MB por arquivo
 PASTA = Path(__file__).parent
@@ -182,16 +192,39 @@ LOTES = {
 }
 
 
+def com_carimbo(nome: str, carimbo: str) -> str:
+    """clientes.csv -> clientes_<carimbo>.csv (mantém pastas, inclusive o ../ do teste de segurança)."""
+    if not carimbo:
+        return nome
+    p = PurePosixPath(nome)
+    return str(p.with_name(f"{p.stem}_{carimbo}{p.suffix}"))
+
+
 def main() -> None:
+    global rnd
+    parser = argparse.ArgumentParser(description="Gera os ZIPs de teste")
+    parser.add_argument("--carimbo", action="store_true",
+                        help="nomes com _ddmmaaaahhmmss e dados aleatórios novos, em samples/gerados/")
+    args = parser.parse_args()
+
+    carimbo, saida = "", PASTA
+    if args.carimbo:
+        carimbo = datetime.now().strftime("%d%m%Y%H%M%S")
+        saida = PASTA / "gerados"
+        saida.mkdir(exist_ok=True)
+        rnd = random.Random()  # sem semente: o conteúdo muda a cada execução
+
     for nome_zip, arquivos in LOTES.items():
-        destino = PASTA / nome_zip
+        destino = saida / com_carimbo(nome_zip, carimbo)
         with zipfile.ZipFile(destino, "w", zipfile.ZIP_DEFLATED) as z:
             for nome, gerar in arquivos.items():
-                z.writestr(nome, gerar())
-        print(f"{nome_zip:<42} {len(arquivos):>2} arquivos  {destino.stat().st_size / 1024:>7.0f} KB")
+                z.writestr(com_carimbo(nome, carimbo), gerar())
+        print(f"{destino.name:<58} {len(arquivos):>2} arquivos  {destino.stat().st_size / 1024:>7.0f} KB")
 
-    (PASTA / "lote-corrompido.zip").write_bytes(b"isto nao e um arquivo zip\n" * 10)
-    print(f"{'lote-corrompido.zip':<42}  -            1 KB")
+    corrompido = saida / com_carimbo("lote-corrompido.zip", carimbo)
+    corrompido.write_bytes(f"isto nao e um arquivo zip {carimbo}\n".encode() * 10)
+    print(f"{corrompido.name:<58}  -            1 KB")
+    print(f"\nGerados em: {saida}")
 
 
 if __name__ == "__main__":
