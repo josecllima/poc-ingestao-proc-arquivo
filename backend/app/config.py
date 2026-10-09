@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     max_arquivos_por_lote: int = 500
     max_descompactado_mb: int = 500
     max_tentativas: int = 3
+    cors_origins: str = "http://localhost:5173,http://localhost:3000"
 
     @property
     def database_url(self) -> str:
